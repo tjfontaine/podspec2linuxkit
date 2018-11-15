@@ -1,0 +1,21 @@
+kernel:
+  cmdline: "console=tty0 console=ttyAMA0"
+onboot:
+- name: mkdir-hgfs
+  image: linuxkit/open-vm-tools:v0.6
+  command: ["mkdir", "-p", "/var/lib/hgfs"]
+  binds:
+  - /var/lib:/var/lib
+- name: mount-fuse
+  image: linuxkit/open-vm-tools:v0.6
+  command: ["/usr/bin/vmhgfs-fuse", "-o", "allow_other", ".host:/", "/var/lib/hgfs"]
+  rootfsPropagation: shared
+  capabilities:
+  - all
+  binds:
+  - /lib/modules:/lib/modules
+  - /dev:/dev
+  - /var/lib:/var/lib:rbind,rshared
+services:
+- name: open-vm-tools
+  image: linuxkit/open-vm-tools:v0.6

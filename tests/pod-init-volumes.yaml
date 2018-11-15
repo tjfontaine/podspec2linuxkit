@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: my-app
+spec:
+  containers:
+  - name: my-app
+    image: my-app:latest
+    volumeMounts:
+    - name: config-data
+      mountPath: /data
+  initContainers:
+  - name: config-data
+    image: busybox
+    command: ["echo","-n","{'address':'10.0.1.192:2379/db'}", ">","/data/config"]
+    volumeMounts:
+    - name: config-data
+      mountPath: /data
+  volumes:
+  - name: config-data
+    hostPath: {}

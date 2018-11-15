@@ -1,0 +1,96 @@
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: media-deployment
+  labels:
+    app: media
+spec:
+  strategy:
+    type: Recreate
+  replicas: 1
+  selector:
+    matchLabels:
+      app: media
+  template:
+    metadata:
+      labels:
+        app: media
+    spec:
+      volumes:
+      - name: media-downloads
+        hostPath:
+          path: /var/lib/hgfs/NewMedia/complete
+      - name: radarr-movies
+        hostPath:
+          path: /var/lib/hgfs/NewMedia/Movies
+      - name: radarr-config
+        hostPath:
+          path: /var/lib/hgfs/NewMedia/media-volume/radarr
+      - name: sonarr-tv
+        hostPath:
+          path: /var/lib/hgfs/NewMedia/TV
+      - name: sonarr-config
+        hostPath:
+          path: /var/lib/hgfs/NewMedia/media-volume/sonarr
+      - name: sabnzbd-incomplete
+        hostPath:
+          path: /var/lib/hgfs/NewMedia/incomplete
+      - name: sabnzbd-config
+        hostPath:
+          path: /var/lib/hgfs/NewMedia/media-volume/SABnzbd
+      containers:
+      - name: radarr
+        image: linuxserver/radarr:136
+        ports:
+        - containerPort: 7878
+          name: radarr-port
+          protocol: TCP
+        volumeMounts:
+        - mountPath: /downloads
+          name: media-downloads
+        - mountPath: /movies
+          name: radarr-movies
+        - mountPath: /config
+          name: radarr-config
+        env:
+        - name: PGID
+          value: "20"
+        - name: PUID
+          value: "501"
+      - name: sonarr
+        image: linuxserver/sonarr:161
+        ports:
+        - containerPort: 8989
+          name: sonarr-port
+          protocol: TCP
+        volumeMounts:
+        - mountPath: /downloads
+          name: media-downloads
+        - mountPath: /tv
+          name: sonarr-tv
+        - mountPath: /config
+          name: sonarr-config
+        env:
+        - name: PGID
+          value: "20"
+        - name: PUID
+          value: "501"
+      - name: sabnzbd
+        image: linuxserver/sabnzbd:139
+        ports:
+        - containerPort: 8080
+          name: sabnzbd-port
+          protocol: TCP
+        volumeMounts:
+        - mountPath: /incomplete-downloads
+          name: sabnzbd-incomplete
+        - mountPath: /downloads
+          name: media-downloads
+        - mountPath: /config
+          name: sabnzbd-config
+        env:
+        - name: PGID
+          value: "20"
+        - name: PUID
+          value: "501"
+
